@@ -31,6 +31,6 @@
       "@utils/*": ["utils/*"],
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.json", ".env"],
+  "include": ["src/**/*.ts", "src/**/*.json", ".env", "jest.config.ts"],
   "exclude": ["node_modules"]
 }

@@ -27,7 +27,7 @@ const getCacheDataById = async (req: Request, res: Response, next: NextFunction)
 const getAllCacheIds = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cacheIds = await cacheService.findAllCacheIds();
-    res.json({ message: "Retreived Caches", data: cacheIds });
+    res.json({ message: "Retrieved Caches", data: cacheIds });
   } catch (error) {
     next(error);
   }
