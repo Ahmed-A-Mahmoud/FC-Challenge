@@ -1,3 +1,7 @@
+## Development Setup
+### Pre-requisites
+- Install [Node.js](https://nodejs.org/)  [v.16.15.0](https://nodejs.org/download/release/v16.15.0/) which includes [Node Package Manager](https://www.npmjs.com/get-npm)
+
 ### Setting Up the server
 
 1. Create a `.env` file with this env variable ```PORT=5000```
@@ -10,7 +14,7 @@
     npm start
     ```
 
-### Running Tests
+## Running Tests
 ```
 npm run test
 ```
