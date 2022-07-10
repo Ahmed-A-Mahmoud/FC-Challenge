@@ -4,13 +4,13 @@ import { Cache } from "@models/cache.model";
 import { generateRandomString, generateTtl } from "@utils/helper";
 import { Document, Types } from "mongoose";
 
-const createNewCache = async () => {
+const createNewCache = async (id: string, requestData: string) => {
   try {
     const createdCache = new Cache({
-      data: generateRandomString(),
+      _id: id,
+      data: requestData || generateRandomString(),
       ttl: generateTtl(),
     });
-
     await createdCache.save();
     return createdCache;
   } catch (error) {
@@ -20,11 +20,12 @@ const createNewCache = async () => {
 
 const updateExistingCache = async (
   existingCache: Document<unknown, any, ICache> & ICache & { _id: Types.ObjectId },
-  ttlOnly: boolean
+  isExpired: boolean,
+  requestData: string
 ) => {
   try {
-    if (!ttlOnly) {
-      existingCache.data = generateRandomString();
+    if (isExpired) {
+      existingCache.data = requestData || generateRandomString();
     }
     existingCache.ttl = generateTtl();
     await existingCache.save();
@@ -34,10 +35,10 @@ const updateExistingCache = async (
   }
 };
 
-const updateOldestCache = async () => {
+const updateOldestCache = async (requestData: string) => {
   try {
     const oldestCache = await Cache.findOne({}, {}, { sort: { updatedAt: 1 } });
-    oldestCache.data = generateRandomString();
+    oldestCache.data = requestData || generateRandomString();
     oldestCache.ttl = generateTtl();
     await oldestCache.save();
     return oldestCache;
@@ -73,12 +74,12 @@ const findCacheSize = async () => {
   }
 };
 
-const handleCacheLimit = async (cacheLimit: number, isCacheMiss: boolean) => {
+const handleCacheLimit = async (cacheLimit: number, isCacheMiss: boolean, id: string, requestData: string) => {
   const cacheSize: number = await findCacheSize();
 
   if (cacheSize >= cacheLimit) {
     // Update oldest updated cache entry using updated_at timestamp
-    const oldestCache = await updateOldestCache();
+    const oldestCache = await updateOldestCache(requestData);
     return {
       status: 200,
       message: isCacheMiss ? "Cache miss" : "Updated Cache",
@@ -86,7 +87,7 @@ const handleCacheLimit = async (cacheLimit: number, isCacheMiss: boolean) => {
     };
   } else {
     // Create new cache entry
-    const createdCache = await createNewCache();
+    const createdCache = await createNewCache(id, requestData);
     return {
       status: 201,
       message: isCacheMiss ? "Cache miss" : "Created Cache",
