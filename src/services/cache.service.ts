@@ -14,7 +14,7 @@ const createNewCache = async (id: string, requestData: string) => {
     await createdCache.save();
     return createdCache;
   } catch (error) {
-    throw new HttpError("Creating cache failed, please try again later.", 500);
+    throw new HttpError("Creating cache failed, please try again later", 500);
   }
 };
 
@@ -31,7 +31,7 @@ const updateExistingCache = async (
     await existingCache.save();
     return existingCache;
   } catch (error) {
-    throw new HttpError("Updating cache failed, please try again later.", 500);
+    throw new HttpError("Updating cache failed, please try again later", 500);
   }
 };
 
@@ -43,7 +43,7 @@ const updateOldestCache = async (requestData: string) => {
     await oldestCache.save();
     return oldestCache;
   } catch (error) {
-    throw new HttpError("Updating cache failed, please try again later.", 500);
+    throw new HttpError("Updating cache failed, please try again later", 500);
   }
 };
 
@@ -52,7 +52,7 @@ const findCacheById = async (id: string) => {
     const existingCache = await Cache.findById(id);
     return existingCache;
   } catch (error) {
-    throw new HttpError("Fetching cache failed, please try again later.", 500);
+    throw new HttpError("Fetching cache failed, please try again later", 500);
   }
 };
 
@@ -61,7 +61,7 @@ const findAllCacheIds = async () => {
     const cacheIds = await Cache.find({}, "id");
     return cacheIds;
   } catch (error) {
-    throw new HttpError("Fetching cache ids failed, please try again later.", 500);
+    throw new HttpError("Fetching cache ids failed, please try again later", 500);
   }
 };
 
@@ -70,7 +70,7 @@ const findCacheSize = async () => {
     const cacheSize = await Cache.countDocuments();
     return cacheSize;
   } catch (error) {
-    throw new HttpError("Fetching cache size failed, please try again later.", 500);
+    throw new HttpError("Fetching cache size failed, please try again later", 500);
   }
 };
 
@@ -101,7 +101,7 @@ const deleteCache = async (id: string) => {
     const cache = await Cache.findByIdAndDelete(id);
     return cache;
   } catch (error) {
-    throw new HttpError("Deleting cache failed, please try again later.", 500);
+    throw new HttpError("Deleting cache failed, please try again later", 500);
   }
 };
 
@@ -109,7 +109,7 @@ const clearCache = async () => {
   try {
     await Cache.deleteMany();
   } catch (error) {
-    throw new HttpError("Clearing cache failed, please try again later.", 500);
+    throw new HttpError("Clearing cache failed, please try again later", 500);
   }
 };
 

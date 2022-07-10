@@ -1,0 +1,117 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "FC-Challenge",
+    "description": "API Documentation",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "Cache",
+      "description": "Cache operations"
+    }
+  ],
+  "paths": {
+    "/api/cache/{id}": {
+      "post": {
+        "tags": ["Cache"],
+        "summary": "Insert or Update Cache Data By Id",
+        "operationId": "upsertCacheDataById",
+        "produces": ["application/json"],
+        "parameters": [
+          { "name": "id", "in": "path", "type": "string", "required": true },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "default": "Test"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieved / Updated Cache"
+          },
+          "201": {
+            "description": "Created Cache"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Cache"],
+        "summary": "Get Cache Data By Id",
+        "operationId": "getCacheDataById",
+        "produces": ["application/json"],
+        "parameters": [{ "name": "id", "in": "path", "type": "string", "required": true }],
+        "responses": {
+          "200": {
+            "description": "Retrieved / Updated Cache"
+          },
+          "201": {
+            "description": "Created Cache"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Cache"],
+        "summary": "Delete Cache By Id",
+        "operationId": "deleteCacheById",
+        "produces": ["application/json"],
+        "parameters": [{ "name": "id", "in": "path", "type": "string", "required": true }],
+        "responses": {
+          "200": {
+            "description": "Deleted Cache"
+          },
+          "404": {
+            "description": "No Cache Found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/cache": {
+      "get": {
+        "tags": ["Cache"],
+        "summary": "Get All Cache Ids",
+        "operationId": "getAllCacheIds",
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Retrieved caches"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Cache"],
+        "summary": "Clear Cache",
+        "operationId": "deleteAllCaches",
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Cleared cache"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  }
+}

@@ -27,7 +27,7 @@ const getCacheDataById = async (req: Request, res: Response, next: NextFunction)
       }
     }
   } catch (error) {
-    return next(new HttpError("Fetching cache failed, please try again later.", 500));
+    return next(new HttpError("Fetching cache failed, please try again later", 500));
   }
 };
 
@@ -47,7 +47,7 @@ const upsertCacheDataById = async (req: Request, res: Response, next: NextFuncti
   try {
     existingCache = await cacheService.findCacheById(id);
   } catch (error) {
-    return next(new HttpError("Fetching cache failed, please try again later.", 500));
+    return next(new HttpError("Fetching cache failed, please try again later", 500));
   }
 
   if (!existingCache) {
@@ -73,9 +73,9 @@ const deleteCacheById = async (req: Request, res: Response, next: NextFunction) 
   try {
     const cache = await cacheService.deleteCache(req.params.id);
     if (!cache) {
-      throw new HttpError("Invalid cache id, could not find cache.", 404);
+      throw new HttpError("Invalid cache id, could not find cache", 404);
     }
-    return res.status(200).json({ message: "Deleted cache." });
+    return res.status(200).json({ message: "Deleted cache" });
   } catch (error) {
     return next(error);
   }
@@ -84,7 +84,7 @@ const deleteCacheById = async (req: Request, res: Response, next: NextFunction) 
 const deleteAllCaches = async (req: Request, res: Response, next: NextFunction) => {
   try {
     await cacheService.clearCache();
-    return res.status(200).json({ message: "Cleared cache." });
+    return res.status(200).json({ message: "Cleared cache" });
   } catch (error) {
     return next(error);
   }

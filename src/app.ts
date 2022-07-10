@@ -1,12 +1,14 @@
 import express, { Application } from "express";
 import routes from "./routes";
-import bodyParser from "body-parser";
-import "dotenv/config";
 import errorMiddleware from "@middlewares/error.middleware";
+import "dotenv/config";
+import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../swagger.json";
 
 const app: Application = express();
 
-app.use(bodyParser.json());
+app.use("/docs/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
+app.use(express.json());
 app.use(routes);
 app.use(errorMiddleware);
 
