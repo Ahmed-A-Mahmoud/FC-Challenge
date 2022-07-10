@@ -37,6 +37,15 @@ const updateOldestCache = async () => {
   }
 };
 
+const findCacheById = async (id: string) => {
+  try {
+    const existingCache = await Cache.findById(id);
+    return existingCache;
+  } catch (error) {
+    throw new HttpError("Fetching cache failed, please try again later.", 500);
+  }
+};
+
 const findAllCacheIds = async () => {
   try {
     const cacheIds = await Cache.find({}, "id");
@@ -46,11 +55,21 @@ const findAllCacheIds = async () => {
   }
 };
 
+const findCacheSize = async () => {
+  try {
+    const cacheSize = await Cache.countDocuments();
+    return cacheSize;
+  } catch (error) {
+    throw new HttpError("Fetching cache size failed, please try again later.", 500);
+  }
+};
+
 const deleteCache = async (id: string) => {
   try {
     const cache = await Cache.findByIdAndDelete(id);
+    return cache;
   } catch (error) {
-    throw new HttpError("Something went wrong, could not delete cache.", 500);
+    throw new HttpError("Deleting cache failed, please try again later.", 500);
   }
 };
 
@@ -58,8 +77,17 @@ const clearCache = async () => {
   try {
     await Cache.deleteMany();
   } catch (error) {
-    throw new HttpError("Something went wrong, could not delete cache.", 500);
+    throw new HttpError("Clearing cache failed, please try again later.", 500);
   }
 };
 
-export default { createNewCache, updateExistingCache, updateOldestCache, findAllCacheIds, deleteCache, clearCache };
+export default {
+  createNewCache,
+  updateExistingCache,
+  updateOldestCache,
+  findCacheById,
+  findAllCacheIds,
+  findCacheSize,
+  deleteCache,
+  clearCache,
+};

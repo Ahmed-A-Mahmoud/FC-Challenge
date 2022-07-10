@@ -1,5 +1,4 @@
 import HttpError from "@exceptions/httpError";
-import { Cache } from "@models/cache.model";
 import { generateRandomString, generateTtl } from "@utils/helper";
 import { NextFunction, Request, Response } from "express";
 import config from "config";
@@ -7,7 +6,7 @@ import cacheService from "@services/cache.service";
 
 const getCacheDataById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existingCache = await Cache.findById(req.params.id);
+    const existingCache = await cacheService.findCacheById(req.params.id);
     if (!existingCache) {
       handleCacheLimitForMiss(req, res, next);
     } else {
@@ -20,7 +19,7 @@ const getCacheDataById = async (req: Request, res: Response, next: NextFunction)
       res.json({ message: "Cache hit", data: existingCache.data });
     }
   } catch (error) {
-    return next(new HttpError("Fetching cache failed, please try again later.", 500));
+    next(new HttpError("Fetching cache failed, please try again later.", 500));
   }
 };
 
@@ -36,9 +35,9 @@ const getAllCacheIds = async (req: Request, res: Response, next: NextFunction) =
 const upsertCacheDataById = async (req: Request, res: Response, next: NextFunction) => {
   let existingCache: any;
   try {
-    existingCache = await Cache.findById(req.params.id);
+    existingCache = await cacheService.findCacheById(req.params.id);
   } catch (error) {
-    return next(new HttpError("Fetching cache failed, please try again later.", 500));
+    next(new HttpError("Fetching cache failed, please try again later.", 500));
   }
 
   if (!existingCache) {
@@ -56,7 +55,10 @@ const upsertCacheDataById = async (req: Request, res: Response, next: NextFuncti
 
 const deleteCacheById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await cacheService.deleteCache(req.params.id);
+    const cache = await cacheService.deleteCache(req.params.id);
+    if (!cache) {
+      throw new HttpError("Invalid cache id, could not find cache.", 404);
+    }
     res.status(200).json({ message: "Deleted cache." });
   } catch (error) {
     next(error);
@@ -73,7 +75,7 @@ const deleteAllCaches = async (req: Request, res: Response, next: NextFunction) 
 };
 
 const handleCacheLimit = async (req: Request, res: Response, next: NextFunction) => {
-  const cacheSize: number = await Cache.countDocuments();
+  const cacheSize: number = await cacheService.findCacheSize();
 
   if (cacheSize >= config.get("cacheLimit")) {
     // Find oldest created cache entry using updated_at timestamp and update it
@@ -95,7 +97,7 @@ const handleCacheLimit = async (req: Request, res: Response, next: NextFunction)
 };
 
 const handleCacheLimitForMiss = async (req: Request, res: Response, next: NextFunction) => {
-  const cacheSize: number = await Cache.countDocuments();
+  const cacheSize: number = await cacheService.findCacheSize();
 
   if (cacheSize >= config.get("cacheLimit")) {
     // Find oldest created cache entry using updated_at timestamp and update it
