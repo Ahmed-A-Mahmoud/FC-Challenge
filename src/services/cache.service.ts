@@ -1,6 +1,8 @@
 import HttpError from "@exceptions/httpError";
+import { ICache } from "@interfaces/cache.interface";
 import { Cache } from "@models/cache.model";
 import { generateRandomString, generateTtl } from "@utils/helper";
+import { Document, Types } from "mongoose";
 
 const createNewCache = async () => {
   try {
@@ -16,9 +18,15 @@ const createNewCache = async () => {
   }
 };
 
-const updateExistingCache = async (existingCache: any) => {
+const updateExistingCache = async (
+  existingCache: Document<unknown, any, ICache> & ICache & { _id: Types.ObjectId },
+  ttlOnly: boolean
+) => {
   try {
-    existingCache.data = generateRandomString();
+    if (!ttlOnly) {
+      existingCache.data = generateRandomString();
+    }
+    existingCache.ttl = generateTtl();
     await existingCache.save();
     return existingCache;
   } catch (error) {
@@ -30,6 +38,7 @@ const updateOldestCache = async () => {
   try {
     const oldestCache = await Cache.findOne({}, {}, { sort: { updatedAt: 1 } });
     oldestCache.data = generateRandomString();
+    oldestCache.ttl = generateTtl();
     await oldestCache.save();
     return oldestCache;
   } catch (error) {
@@ -64,6 +73,28 @@ const findCacheSize = async () => {
   }
 };
 
+const handleCacheLimit = async (cacheLimit: number, isCacheMiss: boolean) => {
+  const cacheSize: number = await findCacheSize();
+
+  if (cacheSize >= cacheLimit) {
+    // Update oldest updated cache entry using updated_at timestamp
+    const oldestCache = await updateOldestCache();
+    return {
+      status: 200,
+      message: isCacheMiss ? "Cache miss" : "Updated Cache",
+      data: isCacheMiss ? oldestCache.data : oldestCache,
+    };
+  } else {
+    // Create new cache entry
+    const createdCache = await createNewCache();
+    return {
+      status: 201,
+      message: isCacheMiss ? "Cache miss" : "Created Cache",
+      data: isCacheMiss ? createdCache.data : createdCache,
+    };
+  }
+};
+
 const deleteCache = async (id: string) => {
   try {
     const cache = await Cache.findByIdAndDelete(id);
@@ -88,6 +119,7 @@ export default {
   findCacheById,
   findAllCacheIds,
   findCacheSize,
+  handleCacheLimit,
   deleteCache,
   clearCache,
 };

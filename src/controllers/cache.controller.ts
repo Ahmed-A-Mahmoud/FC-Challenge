@@ -1,21 +1,23 @@
 import HttpError from "@exceptions/httpError";
-import { generateRandomString, generateTtl } from "@utils/helper";
-import { NextFunction, Request, Response } from "express";
-import config from "config";
 import cacheService from "@services/cache.service";
+import { ICache } from "@interfaces/cache.interface";
+import { Request, Response, NextFunction } from "express";
+import { Document, Types } from "mongoose";
+import config from "config";
 
 const getCacheDataById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const existingCache = await cacheService.findCacheById(req.params.id);
-    if (!existingCache) {
-      handleCacheLimitForMiss(req, res, next);
-    } else {
-      if (existingCache.ttl.getTime() < new Date().getTime()) {
-        existingCache.data = generateRandomString();
-        existingCache.ttl = generateTtl();
-        await existingCache.save();
+    let existingCache = await cacheService.findCacheById(req.params.id);
+    if (!existingCache || existingCache.ttl.getTime() < new Date().getTime()) {
+      try {
+        const cacheLimit: number = config.get("cacheLimit");
+        const { status, message, data } = await cacheService.handleCacheLimit(cacheLimit, true);
+        res.status(status).json({ message, data });
+      } catch (error) {
+        next(error);
       }
-
+    } else {
+      existingCache = await cacheService.updateExistingCache(existingCache, true);
       res.json({ message: "Cache hit", data: existingCache.data });
     }
   } catch (error) {
@@ -33,7 +35,7 @@ const getAllCacheIds = async (req: Request, res: Response, next: NextFunction) =
 };
 
 const upsertCacheDataById = async (req: Request, res: Response, next: NextFunction) => {
-  let existingCache: any;
+  let existingCache: Document<unknown, any, ICache> & ICache & { _id: Types.ObjectId };
   try {
     existingCache = await cacheService.findCacheById(req.params.id);
   } catch (error) {
@@ -41,11 +43,17 @@ const upsertCacheDataById = async (req: Request, res: Response, next: NextFuncti
   }
 
   if (!existingCache) {
-    handleCacheLimit(req, res, next);
-  } else {
-    // Update
     try {
-      existingCache = await cacheService.updateExistingCache(existingCache);
+      const cacheLimit: number = config.get("cacheLimit");
+      const { status, message, data } = await cacheService.handleCacheLimit(cacheLimit, false);
+      res.status(status).json({ message, data });
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    // Update existing cache
+    try {
+      existingCache = await cacheService.updateExistingCache(existingCache, false);
       res.json({ message: "Updated Cache", data: existingCache });
     } catch (error) {
       next(error);
@@ -74,47 +82,4 @@ const deleteAllCaches = async (req: Request, res: Response, next: NextFunction) 
   }
 };
 
-const handleCacheLimit = async (req: Request, res: Response, next: NextFunction) => {
-  const cacheSize: number = await cacheService.findCacheSize();
-
-  if (cacheSize >= config.get("cacheLimit")) {
-    // Find oldest created cache entry using updated_at timestamp and update it
-    try {
-      const oldestCache = await cacheService.updateOldestCache();
-      res.json({ message: "Updated Cache", data: oldestCache });
-    } catch (error) {
-      next(error);
-    }
-  } else {
-    // Creation
-    try {
-      const createdCache = await cacheService.createNewCache();
-      res.status(201).json({ message: "Created Cache", data: createdCache });
-    } catch (error) {
-      next(error);
-    }
-  }
-};
-
-const handleCacheLimitForMiss = async (req: Request, res: Response, next: NextFunction) => {
-  const cacheSize: number = await cacheService.findCacheSize();
-
-  if (cacheSize >= config.get("cacheLimit")) {
-    // Find oldest created cache entry using updated_at timestamp and update it
-    try {
-      const oldestCache = await cacheService.updateOldestCache();
-      res.json({ message: "Cache miss", data: oldestCache.data });
-    } catch (error) {
-      next(error);
-    }
-  } else {
-    // Creation
-    try {
-      const createdCache = await cacheService.createNewCache();
-      res.status(201).json({ message: "Cache miss", data: createdCache.data });
-    } catch (error) {
-      next(error);
-    }
-  }
-};
 export default { getCacheDataById, getAllCacheIds, upsertCacheDataById, deleteCacheById, deleteAllCaches };
