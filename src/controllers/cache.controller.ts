@@ -12,7 +12,8 @@ const getCacheDataById = async (req: Request, res: Response, next: NextFunction)
     if (!existingCache) {
       try {
         const cacheLimit: number = config.get("cacheLimit");
-        const { status, message, data } = await cacheService.handleCacheLimit(cacheLimit, true, id, null);
+        const cacheSize: number = await cacheService.findCacheSize();
+        const { status, message, data } = await cacheService.handleCacheLimit(cacheSize, cacheLimit, true, id, null);
         return res.status(status).json({ message, data });
       } catch (error) {
         return next(error);
@@ -53,7 +54,14 @@ const upsertCacheDataById = async (req: Request, res: Response, next: NextFuncti
   if (!existingCache) {
     try {
       const cacheLimit: number = config.get("cacheLimit");
-      const { status, message, data } = await cacheService.handleCacheLimit(cacheLimit, false, id, requestData);
+      const cacheSize: number = await cacheService.findCacheSize();
+      const { status, message, data } = await cacheService.handleCacheLimit(
+        cacheSize,
+        cacheLimit,
+        false,
+        id,
+        requestData
+      );
       return res.status(status).json({ message, data });
     } catch (error) {
       return next(error);

@@ -5,12 +5,14 @@
   "private": true,
   "scripts": {
     "start": "nodemon",
-    "test": "jest"
+    "test": "jest",
+    "test:cover": "jest --coverage"
   },
   "dependencies": {
     "config": "3.3.7",
     "dotenv": "16.0.1",
     "express": "4.16.1",
+    "mongodb-memory-server": "8.7.2",
     "mongoose": "6.4.0",
     "swagger-ui-express": "4.4.0",
     "ts-node": "10.8.1",

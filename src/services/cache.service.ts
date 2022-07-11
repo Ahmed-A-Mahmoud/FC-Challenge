@@ -35,18 +35,6 @@ const updateExistingCache = async (
   }
 };
 
-const updateOldestCache = async (requestData: string) => {
-  try {
-    const oldestCache = await Cache.findOne({}, {}, { sort: { updatedAt: 1 } });
-    oldestCache.data = requestData || generateRandomString();
-    oldestCache.ttl = generateTtl();
-    await oldestCache.save();
-    return oldestCache;
-  } catch (error) {
-    throw new HttpError("Updating cache failed, please try again later", 500);
-  }
-};
-
 const findCacheById = async (id: string) => {
   try {
     const existingCache = await Cache.findById(id);
@@ -74,16 +62,26 @@ const findCacheSize = async () => {
   }
 };
 
-const handleCacheLimit = async (cacheLimit: number, isCacheMiss: boolean, id: string, requestData: string) => {
-  const cacheSize: number = await findCacheSize();
-
+const handleCacheLimit = async (
+  cacheSize: number,
+  cacheLimit: number,
+  isCacheMiss: boolean,
+  id: string,
+  requestData: string
+) => {
   if (cacheSize >= cacheLimit) {
     // Update oldest updated cache entry using updated_at timestamp
-    const oldestCache = await updateOldestCache(requestData);
+    let oldestCache: Document<unknown, any, ICache> & ICache & { _id: Types.ObjectId };
+    try {
+      oldestCache = await Cache.findOne({}, {}, { sort: { updatedAt: 1 } });
+    } catch (error) {
+      throw new HttpError("Updating cache failed, please try again later", 500);
+    }
+    const updatedCache = await updateExistingCache(oldestCache, true, requestData);
     return {
       status: 200,
       message: isCacheMiss ? "Cache miss" : "Updated Cache",
-      data: isCacheMiss ? oldestCache.data : oldestCache,
+      data: isCacheMiss ? updatedCache.data : updatedCache,
     };
   } else {
     // Create new cache entry
@@ -116,7 +114,6 @@ const clearCache = async () => {
 export default {
   createNewCache,
   updateExistingCache,
-  updateOldestCache,
   findCacheById,
   findAllCacheIds,
   findCacheSize,

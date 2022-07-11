@@ -18,7 +18,7 @@ export default {
     "@utils/(.*)": "<rootDir>/src/utils/$1",
     "@helpers/(.*)": "<rootDir>/src/helpers/$1",
   },
-  testMatch: ["**/__tests__/**/*.ts", "**/?(*.)+(spec|test).ts?"],
+  testMatch: ["**/__tests__/**/*.(spec|test).ts", "**/?(*.)+(spec|test).ts?"],
   transform: {
     "^.+\\.ts$": "ts-jest",
   },
